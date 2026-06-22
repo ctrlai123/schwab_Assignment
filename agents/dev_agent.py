@@ -97,7 +97,7 @@ def main():
     print(f"[Dev Agent] Input tokens : {message.usage.input_tokens}")
     print(f"[Dev Agent] Output tokens: {message.usage.output_tokens}")
     print("\n--- PREVIEW (first 500 chars) ---")
-    print(report[:500])
+    print(report[:500].encode("ascii", errors="replace").decode("ascii"))
 
 
 if __name__ == "__main__":

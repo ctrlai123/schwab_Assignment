@@ -99,7 +99,7 @@ def main():
     print(f"[Design Agent] Input tokens : {message.usage.input_tokens}")
     print(f"[Design Agent] Output tokens: {message.usage.output_tokens}")
     print("\n--- PREVIEW (first 500 chars) ---")
-    print(design_doc[:500])
+    print(design_doc[:500].encode("ascii", errors="replace").decode("ascii"))
 
 
 if __name__ == "__main__":
