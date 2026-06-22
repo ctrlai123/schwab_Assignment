@@ -28,7 +28,7 @@ async def tracing_middleware(request: Request, call_next):
         extra={"trace_id": trace_id},
     )
 
-    response = await call_next(request)
+    response =  await call_next(request)
     response.headers["x-trace-id"] = trace_id
 
     ms = (time.time() - start) * 1000
