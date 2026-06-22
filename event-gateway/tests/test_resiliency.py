@@ -94,6 +94,15 @@ def test_circuit_breaker_closes_on_success():
     assert account_service_breaker._failure_count == 0
 
 
+def test_circuit_breaker_reopens_on_half_open_probe_failure():
+    """HALF_OPEN probe that fails must return breaker to OPEN, not CLOSED."""
+    account_service_breaker._state = CircuitState.HALF_OPEN
+    account_service_breaker._failure_count = account_service_breaker.failure_threshold
+    account_service_breaker.record_failure()
+    assert account_service_breaker.state == CircuitState.OPEN
+    assert not account_service_breaker.can_proceed()
+
+
 # ── Integration (Gateway → Account Service flow) ────────────────────────────
 
 def test_full_flow_gateway_to_account_service(client):
