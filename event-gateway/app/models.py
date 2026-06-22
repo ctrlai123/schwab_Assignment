@@ -11,7 +11,7 @@ class Event(Base):
     type = Column(String, nullable=False)
     amount = Column(Float, nullable=False)
     currency = Column(String, nullable=False)
-    event_timestamp = Column(DateTime, nullable=False)
+    event_timestamp =  Column(DateTime, nullable=False)
     metadata_ = Column("metadata", JSON, nullable=True)
     received_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     status = Column(String, default="pending")
