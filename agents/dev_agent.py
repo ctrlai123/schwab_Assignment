@@ -5,7 +5,7 @@ Reads all service source files and uses Claude to:
   - Audit error handling and logging coverage
   - Identify missing auditing / observability gaps
   - Suggest meaningful git commit messages for staged changes
-  - Propose improvements with concrete code snippets
+  - Development and Propose improvements with concrete code snippets
 
 Usage:
     export ANTHROPIC_API_KEY=sk-ant-...
