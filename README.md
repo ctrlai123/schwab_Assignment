@@ -2,6 +2,17 @@
 
 Two-microservice financial transaction system built with **Python 3.11 / FastAPI / SQLite**.
 
+> **AI-assisted engineering:** Built with [Claude Code](https://claude.ai/code) acting as Design, Development, and QA agent throughout the SDLC. See [AI_USAGE.md](AI_USAGE.md) for details.
+
+| Document | Description |
+|---|---|
+| [DESIGN.md](DESIGN.md) | Design document — architecture, sequence diagrams, data models, decisions |
+| [AI_USAGE.md](AI_USAGE.md) | How Claude Code was used as Design / Dev / QA agent |
+| [docs/COVERAGE_REPORT.md](docs/COVERAGE_REPORT.md) | Unit test coverage summary (95% / 80%) |
+| [docs/FUNCTIONAL_TEST_REPORT.md](docs/FUNCTIONAL_TEST_REPORT.md) | Live functional test results (15/15 pass) |
+| [docs/coverage/account-service/](docs/coverage/account-service/) | HTML coverage report — Account Service |
+| [docs/coverage/event-gateway/](docs/coverage/event-gateway/) | HTML coverage report — Event Gateway |
+
 ---
 
 ## Architecture
