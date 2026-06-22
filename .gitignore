@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 .pytest_cache/
+.coverage
 .env
 
 # SQLite databases (runtime artefacts — not source)
