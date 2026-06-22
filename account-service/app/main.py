@@ -15,6 +15,7 @@ app = FastAPI(title="Account Service", version="1.0.0")
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next):
     trace_id = request.headers.get("x-trace-id", str(uuid.uuid4()))
+    request.state.trace_id = trace_id  # make trace_id available to route handlers
     start = time.time()
     logger.info(
         "Incoming request: %s %s", request.method, request.url.path,
