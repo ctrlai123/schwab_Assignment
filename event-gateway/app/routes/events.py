@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -66,7 +67,12 @@ async def create_event(
         status="pending",
     )
     db.add(db_event)
-    db.commit()
+    try:
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        logger.error("DB insert failed for event %s: %s", event.eventId, exc, extra=extra)
+        raise HTTPException(status_code=503, detail="Ledger write failed — please retry")
 
     # ── Call Account Service ───────────────────────────────────────────────
     try:
@@ -105,6 +111,7 @@ async def get_event(
 
     ev = db.query(Event).filter(Event.event_id == event_id).first()
     if not ev:
+        logger.warning("Event %s not found", event_id, extra={"trace_id": trace_id})
         raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
 
     return _to_response(ev)
@@ -124,8 +131,8 @@ async def list_events(
     if account:
         q = q.filter(Event.account_id == account)
 
-    # chronological order by event timestamp (not arrival order)
-    events = q.order_by(Event.event_timestamp.asc()).all()
+    # chronological order by event timestamp (not arrival order); cap at 500 rows
+    events = q.order_by(Event.event_timestamp.asc()).limit(500).all()
     return EventListResponse(events=[_to_response(e) for e in events], total=len(events))
 
 

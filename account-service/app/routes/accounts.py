@@ -1,5 +1,6 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, Header
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from typing import Optional
 from datetime import datetime, timezone
@@ -22,9 +23,15 @@ def _get_or_create_account(db: Session, account_id: str) -> Account:
     if not account:
         account = Account(account_id=account_id)
         db.add(account)
-        db.commit()
-        db.refresh(account)
-    return  account
+        try:
+            db.commit()
+            db.refresh(account)
+            logger.info("Account %s auto-created", account_id, extra={"trace_id": None})
+        except SQLAlchemyError:
+            db.rollback()
+            # Concurrent creation — fetch the row the other writer committed
+            account = db.query(Account).filter(Account.account_id == account_id).first()
+    return account
 
 
 def _calculate_balance(db: Session, account_id: str) -> tuple[float, int]:
@@ -74,8 +81,13 @@ async def apply_transaction(
         applied_at=_naive(applied_at),
     )
     db.add(tx)
-    db.commit()
-    db.refresh(tx)
+    try:
+        db.commit()
+        db.refresh(tx)
+    except SQLAlchemyError as exc:
+        db.rollback()
+        logger.error("DB write failed for transaction %s: %s", transaction.eventId, exc, extra=extra)
+        raise HTTPException(status_code=503, detail="Database write failed — please retry")
 
     logger.info("Transaction %s applied successfully", transaction.eventId, extra=extra)
 
@@ -102,9 +114,11 @@ async def get_balance(
 
     account = db.query(Account).filter(Account.account_id == accountId).first()
     if not account:
+        logger.warning("Balance requested for unknown account %s", accountId, extra=extra)
         raise HTTPException(status_code=404, detail=f"Account {accountId} not found")
 
     balance, count = _calculate_balance(db, accountId)
+    logger.info("Balance for %s: %.2f (%d transactions)", accountId, balance, count, extra=extra)
 
     last_tx = (
         db.query(Transaction)
@@ -128,6 +142,7 @@ async def get_account(
 
     account = db.query(Account).filter(Account.account_id == accountId).first()
     if not account:
+        logger.warning("Account details requested for unknown account %s", accountId, extra=extra)
         raise HTTPException(status_code=404, detail=f"Account {accountId} not found")
 
     balance, _ = _calculate_balance(db, accountId)
