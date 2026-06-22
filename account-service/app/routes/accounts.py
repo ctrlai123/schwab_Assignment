@@ -24,7 +24,7 @@ def _get_or_create_account(db: Session, account_id: str) -> Account:
         db.add(account)
         db.commit()
         db.refresh(account)
-    return account
+    return  account
 
 
 def _calculate_balance(db: Session, account_id: str) -> tuple[float, int]:
